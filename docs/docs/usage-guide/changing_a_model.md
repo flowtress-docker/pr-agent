@@ -5,9 +5,9 @@ sidebar_position: 6
 
 ## Changing a model in PR-Agent
 
-See [here](https://github.com/qodo-ai/pr-agent/blob/main/pr_agent/algo/__init__.py) for a list of supported models in PR-Agent.
+See [here](https://github.com/the-pr-agent/pr-agent/blob/main/pr_agent/algo/__init__.py) for a list of supported models in PR-Agent.
 The default model of PR-Agent is `GPT-5` from OpenAI.
-To use a different model than the default, you need to edit in the [configuration file](https://github.com/qodo-ai/pr-agent/blob/main/pr_agent/settings/configuration.toml#L7) the fields:
+To use a different model than the default, you need to edit in the [configuration file](https://github.com/the-pr-agent/pr-agent/blob/main/pr_agent/settings/configuration.toml#L7) the fields:
 
 ```toml
 [config]
@@ -152,7 +152,7 @@ key = ...
 
 (you can obtain a Llama2 key from [here](https://replicate.com/replicate/llama-2-70b-chat/api))
 
-Also, review the [.secrets_template.toml](https://github.com/qodo-ai/pr-agent/blob/main/pr_agent/settings/.secrets_template.toml) file for instructions on how to set keys for other models.
+Also, review the [.secrets_template.toml](https://github.com/the-pr-agent/pr-agent/blob/main/pr_agent/settings/.secrets_template.toml) file for instructions on how to set keys for other models.
 
 ### Groq
 
@@ -258,6 +258,43 @@ model="bedrock/us.meta.llama4-scout-17b-instruct-v1:0"
 fallback_models=["bedrock/us.meta.llama4-maverick-17b-instruct-v1:0"]
 ```
 
+#### Using IAM Role Credentials (Recommended on AWS Compute)
+
+When running PR-Agent on AWS infrastructure (EC2, ECS/Fargate, EKS with IRSA, Lambda, or any self-hosted GitHub Actions runner on AWS), the instance or task already has an IAM role attached. You can use those ambient credentials directly instead of storing long-lived static keys.
+
+Set `AWS_USE_IMDS=true` in the environment. PR-Agent will resolve credentials via boto3's standard provider chain, which handles all AWS compute contexts transparently:
+
+| Compute context | Mechanism |
+|---|---|
+| EC2 instance with IAM role | IMDSv2 (169.254.169.254) |
+| ECS / Fargate task role | Task metadata endpoint |
+| EKS pod with IRSA | Web identity token + STS |
+| Lambda function | Runtime-injected credentials |
+
+Minimal GitHub Actions workflow (no AWS secret keys required):
+
+```yaml
+- uses: Codium-ai/pr-agent@main
+  env:
+    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    AWS_USE_IMDS: "true"
+    # AWS_REGION_NAME: us-east-1  # optional if the instance metadata provides it
+  with:
+    command: review
+```
+
+The IAM role must have `bedrock:InvokeModel` permission on the target model ARN, for example:
+
+```json
+{
+  "Effect": "Allow",
+  "Action": "bedrock:InvokeModel",
+  "Resource": "arn:aws:bedrock:us-east-1::foundation-model/anthropic.claude-3-5-sonnet-20240620-v1:0"
+}
+```
+
+If you also configure static keys in `[aws]`, they serve as an automatic fallback: if the ambient credentials fail a Bedrock call (e.g., the role lacks `bedrock:InvokeModel`), PR-Agent retries with the static keys and logs a warning.
+
 #### Custom Inference Profiles
 
 To use a custom inference profile with Amazon Bedrock (for cost allocation tags and other configuration settings), add the `model_id` parameter to your configuration:
@@ -346,7 +383,7 @@ key = "..." # your Codestral api key
 To use model from Openrouter, for example, set:
 
 ```toml
-[config] # in configuration.toml 
+[config] # in configuration.toml
 model="openrouter/anthropic/claude-3.7-sonnet"
 fallback_models=["openrouter/deepseek/deepseek-chat"]
 custom_model_max_tokens=20000
@@ -359,7 +396,7 @@ key = "..." # your openrouter api key
 
 ### Custom models
 
-If the relevant model doesn't appear [here](https://github.com/qodo-ai/pr-agent/blob/main/pr_agent/algo/__init__.py), you can still use it as a custom model:
+If the relevant model doesn't appear [here](https://github.com/the-pr-agent/pr-agent/blob/main/pr_agent/algo/__init__.py), you can still use it as a custom model:
 
 1. Set the model name in the configuration file:
 
@@ -387,10 +424,10 @@ To bypass chat templates and temperature controls, set `config.custom_reasoning_
 
 ```toml
 [config]
-reasoning_effort = "medium" # "low", "medium", "high"
+reasoning_effort = "medium" # "none", "minimal", "low", "medium", "high", "xhigh"
 ```
 
-With the OpenAI models that support reasoning effort (eg: o4-mini), you can specify its reasoning effort via `config` section. The default value is `medium`. You can change it to `high` or `low` based on your usage.
+With the OpenAI models that support reasoning effort (eg: gpt-5.4-mini), you can specify its reasoning effort via `config` section. The default value is `medium`. You can change it to any supported value based on your usage. Available values depend on the model and provider.
 
 ### Anthropic models
 

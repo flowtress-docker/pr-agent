@@ -4,12 +4,12 @@
 const config = {
   title: 'PR-Agent',
   tagline: 'AI-powered code review agent',
-  url: 'https://qodo-merge-docs.qodo.ai',
+  url: 'https://docs.pr-agent.ai',
   baseUrl: '/',
   onBrokenLinks: 'throw',
   onBrokenAnchors: 'warn',
   favicon: 'img/favicon.svg',
-  organizationName: 'qodo-ai',
+  organizationName: 'the-pr-agent',
   projectName: 'pr-agent',
 
   markdown: {
@@ -27,7 +27,7 @@ const config = {
         docs: {
           routeBasePath: '/',
           sidebarPath: require.resolve('./sidebars.js'),
-          editUrl: 'https://github.com/qodo-ai/pr-agent/tree/main/docs/',
+          editUrl: 'https://github.com/the-pr-agent/pr-agent/tree/main/docs/',
         },
         blog: false,
         theme: {
@@ -92,7 +92,7 @@ const config = {
             position: 'left',
           },
           {
-            href: 'https://github.com/qodo-ai/pr-agent',
+            href: 'https://github.com/the-pr-agent/pr-agent',
             label: 'GitHub',
             position: 'right',
           },
@@ -116,7 +116,7 @@ const config = {
             items: [
               {
                 label: 'GitHub',
-                href: 'https://github.com/qodo-ai/pr-agent',
+                href: 'https://github.com/the-pr-agent/pr-agent',
               },
             ],
           },

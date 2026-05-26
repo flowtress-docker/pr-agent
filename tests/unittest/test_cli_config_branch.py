@@ -1,0 +1,48 @@
+from types import SimpleNamespace
+from unittest.mock import MagicMock, patch
+
+from pr_agent import cli
+
+
+def test_set_parser_supports_config_branch_flag():
+    args = cli.set_parser().parse_args(["--pr_url=https://github.com/a/b/pull/1", "--config-branch", "feature", "review"])
+    assert args.config_branch == "feature"
+
+
+def test_run_sets_config_branch_from_cli_flag():
+    fake_settings = SimpleNamespace(
+        litellm={},
+        set=MagicMock(),
+    )
+
+    async def fake_handle_request(*_args, **_kwargs):
+        return True
+
+    with patch("pr_agent.cli.get_settings", return_value=fake_settings), patch(
+        "pr_agent.cli.PRAgent",
+        return_value=SimpleNamespace(handle_request=fake_handle_request),
+    ):
+        cli.run(inargs=["--pr_url=https://github.com/a/b/pull/1", "--config-branch", "feature", "review"])
+
+    fake_settings.set.assert_any_call("CONFIG.CONFIG_BRANCH", "feature")
+
+
+def test_run_sets_config_branch_from_env_var():
+    fake_settings = SimpleNamespace(
+        litellm={},
+        set=MagicMock(),
+    )
+
+    async def fake_handle_request(*_args, **_kwargs):
+        return True
+
+    with patch.dict("os.environ", {"PR_AGENT_CONFIG_BRANCH": "env-branch"}, clear=False), patch(
+        "pr_agent.cli.get_settings",
+        return_value=fake_settings,
+    ), patch(
+        "pr_agent.cli.PRAgent",
+        return_value=SimpleNamespace(handle_request=fake_handle_request),
+    ):
+        cli.run(inargs=["--pr_url=https://github.com/a/b/pull/1", "review"])
+
+    fake_settings.set.assert_any_call("CONFIG.CONFIG_BRANCH", "env-branch")

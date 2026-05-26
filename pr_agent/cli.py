@@ -52,6 +52,7 @@ def set_parser():
     parser.add_argument('--version', action='version', version=f'pr-agent {get_version()}')
     parser.add_argument('--pr_url', type=str, help='The URL of the PR to review', default=None)
     parser.add_argument('--issue_url', type=str, help='The URL of the Issue to review', default=None)
+    parser.add_argument('--config-branch', type=str, help='Git branch to load .pr_agent.toml from', default=None)
     parser.add_argument('command', type=str, help='The', choices=commands, default='review')
     parser.add_argument('rest', nargs=argparse.REMAINDER, default=[])
     return parser
@@ -76,6 +77,9 @@ def run(inargs=None, args=None):
 
     command = args.command.lower()
     get_settings().set("CONFIG.CLI_MODE", True)
+    config_branch = (args.config_branch or os.environ.get("PR_AGENT_CONFIG_BRANCH") or "").strip()
+    if config_branch:
+        get_settings().set("CONFIG.CONFIG_BRANCH", config_branch)
 
     async def inner():
         if args.issue_url:

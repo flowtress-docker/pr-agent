@@ -2,10 +2,11 @@ import copy
 import difflib
 import hashlib
 import itertools
+import json
+import os
 import re
 import time
 import traceback
-import json
 from datetime import datetime
 from typing import Optional, Tuple
 from urllib.parse import urlparse
@@ -731,10 +732,23 @@ class GithubProvider(GitProvider):
         return self.pr.get_issue_comments()
 
     def get_repo_settings(self):
+        config_branch = get_settings().get("CONFIG.CONFIG_BRANCH", None) or os.environ.get("PR_AGENT_CONFIG_BRANCH")
+        if isinstance(config_branch, str):
+            config_branch = config_branch.strip()
+        if config_branch:
+            try:
+                return self.repo_obj.get_contents(".pr_agent.toml", ref=config_branch).decoded_content
+            except GithubException as e:
+                get_logger().warning(
+                    f"Failed to load .pr_agent.toml from branch '{config_branch}', falling back to default branch",
+                    artifact={"status": e.status, "error": str(e)},
+                )
+            except Exception as e:
+                get_logger().warning(
+                    f"Failed to load .pr_agent.toml from branch '{config_branch}', falling back to default branch",
+                    artifact={"error": str(e)},
+                )
         try:
-            # contents = self.repo_obj.get_contents(".pr_agent.toml", ref=self.pr.head.sha).decoded_content
-
-            # more logical to take 'pr_agent.toml' from the default branch
             contents = self.repo_obj.get_contents(".pr_agent.toml").decoded_content
             return contents
         except Exception:

@@ -200,6 +200,12 @@ class LiteLLMAIHandler(BaseAiHandler):
         if get_settings().get("CODESTRAL.KEY", None):
             os.environ["CODESTRAL_API_KEY"] = get_settings().get("CODESTRAL.KEY")
 
+        # Support minimax models
+        if get_settings().get("MINIMAX.KEY", None):
+            os.environ["MINIMAX_API_KEY"] = get_settings().get("MINIMAX.KEY")
+        if get_settings().get("MINIMAX.API_BASE", None):
+            os.environ["MINIMAX_API_BASE"] = get_settings().get("MINIMAX.API_BASE")
+
         # Check for Azure AD configuration
         if get_settings().get("AZURE_AD.CLIENT_ID", None):
             self.azure = True

@@ -246,6 +246,13 @@ MAX_TOKENS = {
     'groq/llama-3.1-8b-instant': 128000,
     'sambanova/MiniMax-M2.7': 192000,
     'sambanova/MiniMax-M2.5': 160000,
+    # minimax/ — native provider via litellm
+    'minimax/MiniMax-M2': 200000,
+    'minimax/MiniMax-M2.1': 1000000,
+    'minimax/MiniMax-M2.1-lightning': 1000000,
+    'minimax/MiniMax-M2.5': 1000000,
+    'minimax/MiniMax-M2.5-lightning': 1000000,
+    'minimax/MiniMax-M3': 512000,
     'sambanova/Meta-Llama-3.3-70B-Instruct': 128000,
     'sambanova/gpt-oss-120b': 128000,
     'sambanova/DeepSeek-V3.1': 128000,
